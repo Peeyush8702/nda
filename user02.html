@@ -243,11 +243,33 @@
     }
 
     function showResult() {
-      const score = answers.reduce((acc, a, i) => a === questions[i].answer ? acc + 1 : acc, 0);
-      quizBox.style.display = "none";
-      document.getElementById("result").textContent = `You scored ${score} out of ${questions.length}`;
-      localStorage.setItem("score_" + username, `${score}/${questions.length}`);
+  let correct = 0, incorrect = 0;
+
+  answers.forEach((ans, i) => {
+    if (ans === null) return;
+    if (ans === questions[i].answer) {
+      correct++;
+    } else {
+      incorrect++;
     }
+  });
+
+  const score = (correct * 4) - (incorrect * 1.33);
+  const scoreFormatted = score.toFixed(2);
+  const resultBox = document.getElementById("result");
+  const quizBox = document.getElementById("quizBox");
+
+  quizBox.innerHTML = '';
+  resultBox.innerHTML = `
+    <p>✅ Correct: ${correct}</p>
+    <p>❌ Incorrect: ${incorrect}</p>
+    <p>📋 Unanswered: ${questions.length - (correct + incorrect)}</p>
+    <h3>🎯 Final Score: <span style="color:#00ffcc">${scoreFormatted} / ${questions.length * 4}</span></h3>
+  `;
+
+  localStorage.setItem("score_" + username, `${scoreFormatted}/${questions.length * 4}`);
+}
+
 
     function startTimer() {
       let seconds = 0;
