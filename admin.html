@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - NDA Test Upload</title>
+  <title>Admin Panel - NDA Upload</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,9 +13,9 @@
       color: #fff;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      padding: 20px;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
     }
     .container {
       background: rgba(255, 255, 255, 0.05);
@@ -24,22 +24,12 @@
       border-radius: 15px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.2);
       width: 100%;
-      max-width: 700px;
+      max-width: 800px;
     }
     h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #00e6e6;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 12px 15px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      border: none;
-      font-size: 14px;
-      color: #333;
-      font-family: 'Poppins', sans-serif;
     }
     textarea {
       width: 100%;
@@ -53,8 +43,16 @@
       color: #333;
       font-family: 'Poppins', sans-serif;
     }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 10px;
+      border: none;
+      font-size: 15px;
+    }
     button {
-      margin-top: 20px;
+      margin-top: 10px;
       width: 100%;
       padding: 15px;
       background: #00e6e6;
@@ -75,59 +73,101 @@
       margin-top: 10px;
       text-align: center;
     }
+    .existing-tests {
+      margin-top: 40px;
+      color: #fff;
+    }
+    #testList {
+      list-style: none;
+      padding: 0;
+    }
+    #testList li {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.08);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    #testList button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Upload NDA Mock Test</h2>
-    
-    <input type="text" id="testName" placeholder="Enter test name (e.g. math_mock1)" />
-    
+    <h2>Admin Panel - Upload NDA Mock Test</h2>
+    <input type="text" id="testName" placeholder="Enter a unique test name (e.g., math_mock1)" required>
     <textarea id="questionData">[
-  {
-    "q": "What is the full form of NDA?",
-    "options": ["National Defence Academy", "National Democratic Alliance", "New Delhi Authority"],
-    "answer": 0
-  }
+  { "q": "What is the full form of NDA?", "options": ["National Defence Academy", "National Democratic Alliance", "New Delhi Authority"], "answer": 0 }
 ]</textarea>
-    
     <button onclick="upload()">Upload Test</button>
-    
-    <div class="info">Paste your questions as JSON array. Name your test uniquely.<br>Each test will be stored separately.</div>
+    <div class="info">Paste questions in JSON format. Max 300 questions. Each test will be saved as: <b>nda_test_testname</b></div>
+
+    <div class="existing-tests">
+      <h3>🗂 Uploaded Tests:</h3>
+      <ul id="testList"></ul>
+    </div>
   </div>
 
   <script>
     function upload() {
-      const testName = document.getElementById("testName").value.trim();
+      const testName = document.getElementById("testName").value.trim().toLowerCase().replace(/\s+/g, "_");
       const input = document.getElementById("questionData").value;
+      if (!testName) return alert("❌ Please enter a test name.");
 
-      if (!testName) {
-        alert("⚠️ Please enter a test name.");
+      try {
+        const data = JSON.parse(input);
+        if (data.length > 300) {
+          alert("⚠️ Maximum 300 questions allowed.");
+          return;
+        }
+        const storageKey = "nda_test_" + testName;
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        alert("✅ Test uploaded successfully.");
+        document.getElementById("testName").value = "";
+        document.getElementById("questionData").value = "";
+        showTestList();
+      } catch (e) {
+        alert("❌ Invalid JSON format. Please fix and try again.");
+      }
+    }
+
+    function showTestList() {
+      const testList = document.getElementById("testList");
+      testList.innerHTML = '';
+      const keys = Object.keys(localStorage).filter(k => k.startsWith("nda_test_"));
+      if (keys.length === 0) {
+        testList.innerHTML = '<li>No tests uploaded yet.</li>';
         return;
       }
 
-      try {
-        const questions = JSON.parse(input);
+      keys.forEach(key => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${key.replace("nda_test_", "").replace(/_/g, " ").toUpperCase()}
+          <button onclick="deleteTest('${key}')">Delete</button>
+        `;
+        testList.appendChild(li);
+      });
+    }
 
-        if (!Array.isArray(questions) || questions.length === 0) {
-          alert("❌ Invalid or empty question list.");
-          return;
-        }
-
-        // Optional limit for safety
-        if (questions.length > 300) {
-          alert("⚠️ Limit exceeded. Max 300 questions allowed.");
-          return;
-        }
-
-        localStorage.setItem("nda_test_" + testName.toLowerCase(), JSON.stringify(questions));
-        alert(`✅ Test "${testName}" uploaded successfully.`);
-        document.getElementById("testName").value = '';
-        document.getElementById("questionData").value = '';
-      } catch (err) {
-        alert("❌ Invalid JSON format. Please check your input.");
+    function deleteTest(key) {
+      if (confirm(`Are you sure you want to delete "${key}"?`)) {
+        localStorage.removeItem(key);
+        showTestList();
+        alert(`❌ Deleted: ${key}`);
       }
     }
+
+    // Load existing tests on page load
+    showTestList();
   </script>
 </body>
 </html>
