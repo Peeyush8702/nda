@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - NDA Test Upload</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 700px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00e6e6;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      color: #333;
+      font-family: 'Poppins', sans-serif;
+    }
+    textarea {
+      width: 100%;
+      height: 250px;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      border: none;
+      resize: vertical;
+      background: #f0f0f0;
+      color: #333;
+      font-family: 'Poppins', sans-serif;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 15px;
+      background: #00e6e6;
+      color: #000;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #00cccc;
+    }
+    .info {
+      font-size: 14px;
+      color: #ddd;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Upload NDA Mock Test</h2>
+    
+    <input type="text" id="testName" placeholder="Enter test name (e.g. math_mock1)" />
+    
+    <textarea id="questionData">[
+  {
+    "q": "What is the full form of NDA?",
+    "options": ["National Defence Academy", "National Democratic Alliance", "New Delhi Authority"],
+    "answer": 0
+  }
+]</textarea>
+    
+    <button onclick="upload()">Upload Test</button>
+    
+    <div class="info">Paste your questions as JSON array. Name your test uniquely.<br>Each test will be stored separately.</div>
+  </div>
+
+  <script>
+    function upload() {
+      const testName = document.getElementById("testName").value.trim();
+      const input = document.getElementById("questionData").value;
+
+      if (!testName) {
+        alert("⚠️ Please enter a test name.");
+        return;
+      }
+
+      try {
+        const questions = JSON.parse(input);
+
+        if (!Array.isArray(questions) || questions.length === 0) {
+          alert("❌ Invalid or empty question list.");
+          return;
+        }
+
+        // Optional limit for safety
+        if (questions.length > 300) {
+          alert("⚠️ Limit exceeded. Max 300 questions allowed.");
+          return;
+        }
+
+        localStorage.setItem("nda_test_" + testName.toLowerCase(), JSON.stringify(questions));
+        alert(`✅ Test "${testName}" uploaded successfully.`);
+        document.getElementById("testName").value = '';
+        document.getElementById("questionData").value = '';
+      } catch (err) {
+        alert("❌ Invalid JSON format. Please check your input.");
+      }
+    }
+  </script>
+</body>
+</html>
